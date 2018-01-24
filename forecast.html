@@ -1,0 +1,411 @@
+<!doctype>
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Forecast-Weather</title>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
+
+
+</head>
+
+
+<!-- Backup Font if custom one fails -->
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat" rel="stylesheet" type="text/css">
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top" id="av_bar">
+        <div class="container">
+            <div class="navbar-header">
+                <b id="main">Weather Forecast</b>
+                <button class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+
+            </div>
+
+ 
+        </div>
+    </nav>
+
+
+    <div style="background: url(weatherforecast.jpg) no-repeat;background-attachment:fixed; background-position:center; background-size: cover; width:100%;">
+        <div style="margin-bottom: 0px; color: #008B8B;">
+            <h2 class="text-center" style="font-size: 4vw;font-family: sans-serif; font-weight: 600; padding-top: 100px">Weather-Forecast</h2>
+        </div>
+
+
+        <div class="container" style="height: 1650px;">
+            <div class="row" id="citydiv">
+                <!-- <div class="col-md-12" style="margin-bottom:10px;">
+                    <h3 class="text-center text-primary" style="color: black; font-size: 30px;">Enter City Name</h3>
+                </div>
+                -->
+
+
+                <div class="row form-group form-inline" id="citydiv">
+                    <input type="text" name="city" id="city" class="form-control" placeholder="Enter City Here..." />
+                    <input type="text" name="days" id="days" class="form-control " placeholder="No.Of Days (1 to 3)" />
+                    <button id="submitforecast" class="btn">Get Weather</button>
+                </div>
+
+                <span id="error" class="text-center"></span>
+
+            </div>
+
+            <div class="row" style="margin-top: 30px;">
+                <table class="table table-bordered">
+                    <div id="header" class="text-center"></div>
+                    <thead>
+                        <tr>
+						    <th>Date</th>
+						    <th>Time</th>
+                            <th>Icon</th>
+							<th>Location</th>
+                            <th>Weather</th>
+                            <th>Description</th>
+                            <th>Morng-Temp</th>
+                            <th>Night-Temp</th>
+                            <th>Min-Temp</th>
+                            <th>Max-Temp</th>
+                            <th>Pressure</th>
+                            <th>Humidity</th>
+                            <th>Wind-Speed</th>	
+                        </tr>
+                    </thead>
+                    <tbody id="forecastweather">
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="forecast.js"></script>
+	<script>
+	$(document).ready(function() {
+    $("#submitforecast").click(function() {
+
+        return getforecast();
+    });
+});
+
+
+function getforecast() {
+    var city = $("#city").val();
+    var days = $("#days").val();
+	var date = new Date();
+	var day = date.getDate();
+	var time = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+
+	var month = date.getMonth()+1;
+	var period = date.getFullYear() + (month<10 ? '/' : '' ) + month + (day>10 ? '/' :'') +day;
+	console.log(period);
+	console.log(time);
+
+
+
+    if (city == '') {
+        $("#error").html("<div class='alert alert-danger text-center' id='error' style='margin-top: 20px; margin-left: auto; margin-right: auto; width:50%;'>Please Enter a City</div>");
+        $("#forecastweather").html("");
+        $("#header").html("");
+    }
+    if (days == '') {
+        $("#error").html("<div class='alert alert-danger text-center' id='error' style='margin-top: 20px; margin-left: auto; margin-right: auto; width:50%;'>Please Enter No.of days</div>");
+        $("#forecastweather").html("");
+        $("#header").html("");
+    }
+    if (city == '' && days == '') {
+        $("#error").html("<div class='alert alert-danger text-center' id='error' style='margin-top: 20px; margin-left: auto; margin-right: auto; width:50%;'>Please Enter a City and No.of days</div>");
+        $("#forecastweather").html("");
+        $("#header").html("");
+    }
+
+    if (city != '' && days != '') {
+        $("#error").html("");
+        $.ajax({
+            url: 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + city + "&units=metric" + "&cnt=" + days + "&APPID=e70b5efc0d1e99e84e4030774d91c196",
+            type: "GET",
+            dataType: "jsonp",
+            success: function(data) {
+               
+                var table = '';
+                var header = '<h2 style="font-weight:bold; font-size:30px;color: #008B8B; font-family: sans-serif; margin-top:20px;">Weather Forecast For ' + data.city.name + ',' + data.city.country + '</h2>';
+
+                for (var i = 0; i < data.list.length; i++) {
+                    table += "<tr>";
+                    
+				    table += "<td>" + period + "</td>";
+					table += "<td>" + time + "</td>";             
+                    table += "<td><img src='http://openweathermap.org/img/w/" + data.list[i].weather[0].icon + ".png'></td>";
+					table += "<td>" + data.city.name + "</td>";
+                    table += "<td>" + data.list[i].weather[0].main + "</td>";
+                    table += "<td>" + data.list[i].weather[0].description + "</td>";
+                    table += "<td>" + data.list[i].temp.morn + "&deg;C</td>";
+                    table += "<td>" + data.list[i].temp.night + "&deg;C</td>";
+                    table += "<td>" + data.list[i].temp.min + "&deg;C</td>";
+                    table += "<td>" + data.list[i].temp.max + "&deg;C</td>";
+                    table += "<td>" + data.list[i].pressure + "hpa</td>";
+                    table += "<td>" + data.list[i].humidity + "%</td>";
+                    table += "<td>" + data.list[i].speed + "km/h</td>";
+					  
+					
+						 
+
+                    table += "</tr>";
+                }
+                $("#forecastweather").html(table);
+                $("#header").html(header);
+                $("#city").val('');
+                $("#days").val('');
+            },
+
+            error: function(data) {
+                if (Statuscode == 404) {
+                    $("#error").html("please enter a valid city!!!!");
+                }
+            }
+        });
+
+    }
+}
+	</script>
+	<style>
+	    .favicon {
+        border-radius: 20px;
+    }
+    
+    body {
+        font-family: 'Tangerin', serif;
+        background-color: #00CED1;
+        font-size: 20px;
+        margin: 0px;
+        padding: 0px;
+    }
+    
+    #nav_bar {
+        margin-bottom: 0px;
+        padding: 0px;
+        background-color: white;
+        border: none;
+    }
+    
+    .nav_brand {
+        color: #008B8B!important;
+        font-size: 25px;
+        font-weight: 600;
+    }
+    
+    #nav_list>li>a {
+        font-family: sans-serif;
+        color: red;
+        font-weight: 500;
+    }
+    
+    
+    #main {
+        font-size: 1.8vw;
+	font-family: sans-serif;
+    }
+    
+ 
+    
+    #headrow {
+        background: url(images/demo.jpeg) no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+        background-size: cover;
+        width: 100%;
+        height: 98vh;
+        margin: 0px;
+    }
+    
+
+    
+    #colheadtext2 {
+        color: white;
+        font-size: 3vw;
+        padding-top: 10px;
+	font-family: sans-serif;
+        padding-bottom: 10px;
+        text-shadow: 2px 2px black;
+    }
+    
+   
+    
+    #arrow {
+        text-align: center;
+        margin-top: -65px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    ul#list_item {
+        color: black;
+        text-align: center;
+        font-size: 3vw;
+	font-family: sans-serif;
+        text-shadow: 1px 1px white;
+    }
+    
+    #citydiv {
+        width: 100%;
+        text-align: center;
+        margin: auto;
+		 
+    }
+    
+    #city {
+        width: 30vw;
+        margin-top: 20px;
+        align-content: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    #days {
+        width: 30vw;
+        margin-top: 20px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    #submitcurrent {
+        margin-top: 20px;
+		background-color: #008B8B;
+    }
+    
+    #submitforecast {
+        margin-top: 20px;
+	
+    }
+    #btn{
+       margin-top: 8px;
+       margin-left: 10px;
+       cursor: pointer;
+        background-color:#008B8B ;
+	}
+  
+    
+    #error {
+        font-size: 2vw;
+    }
+    
+    #errorcity {
+        width: 50%;
+        margin: auto;
+        text-align: center;
+    }
+    
+    #showweather {
+        width: 60%;
+        margin: auto;
+        background-color: black;
+        border: 1px solid white;
+        color: white;
+        border-radius: 20px;
+        opacity: 0.7;
+    }
+	
+    
+    table {
+        background-color: #008B8B;
+        font-family: Helvetical, Arial, sans-serif;
+        opacity: 0.7;
+    }
+    
+    th {
+        background: #008B8B;
+        font-weight: bold;
+        font-size: 18px;
+        color: white;
+    }
+    
+    tbody {
+        background-color: #008B8B;
+    }
+    
+    td {
+        background: #FAFAFA;
+        text-align: center;
+        font-size: 18px;
+    }
+    
+    #welcomepara {
+        color: white;
+        font-size: 2vw;
+        font-weight: normal;
+        padding: 110px 25px 40px 25px;
+        letter-spacing: 2px;
+    }
+    
+    #rowdiv {
+        margin: auto;
+        margin-bottom: 180px;
+        width: 100%;
+    }
+    
+    #coldes h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+    }
+    
+    #coldes {
+        border: 2px solid #e7e7e7;
+        border-radius: 20px;
+        margin: 20px 40px;
+        height: auto;
+    }
+    
+    #coldes:hover {
+        border: 2px solid #e7e7e7;
+        border-radius: 20px;
+        margin: 20px 40px;
+        height: auto;
+        box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.2), 0 8px 20px 0 rgba(0, 0, 0, 0.19);
+        background-color: #F1F1F1;
+        color: black;
+    }
+    
+    .info-icon {
+        text-align: center;
+    }
+    
+    .info-icon i {
+        font-size: 50px;
+        margin-top: 10px;
+        color: #4aa1f3;
+    }
+    
+    .typed-cursor {
+        opacity: 0;
+        -webkit-animation: blink 0.7s infinite;
+        -moz-animation: blink 0.7s infinite;
+        animation: blink 0.7s infinite;
+    }
+   
+    
+
+   
+   
+    
+    
+	</style>
+</body
+
+</html>
